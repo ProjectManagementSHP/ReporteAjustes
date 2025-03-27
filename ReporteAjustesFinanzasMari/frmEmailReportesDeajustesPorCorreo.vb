@@ -9,6 +9,7 @@ Imports System.String
 Public Class frmEmailReportesDeajustesPorCorreo
     'Dim strCnn As String = "Server=SHPLAPSIS01\SQLEXPRESS2012; Database=SEA; User ID=sa;Password=SHPadmin14%"
     Dim strCnn As String = "Server=10.17.182.12\SQLEXPRESS2012;Database=SEA;User ID=sa;Password=SHPadmin14%"
+    'Dim strCnn As String = "Server=10.17.182.36\SQLEXPRESS2012;Database=SEA;User ID=sa;Password=SHPadmin14%"
     Dim cnn As New SqlConnection(strCnn)
     Private tblAjustes As New DataTable
     Dim QtyMovimientos, QtyPsitivos, QtyNegativos, QtyPsitivosBB, QtyNegativosBB, QtyMovimientosBB As Integer
@@ -23,7 +24,7 @@ Public Class frmEmailReportesDeajustesPorCorreo
         Dim Mes As String = ""
         dtpFrom.Value = CDate(CStr(intMonth) + "/1/" + CStr(intYear))
         'DiaF = CDate("31-Oct-2024")
-        Dia = DiaF.ToString("dd-MMM-yyyy")
+        Dia = DiaF.ToString("yyyy-MM-dd")
         'DiaF = "3/31/2019"
         'UltimoDia = "31-Oct-2024"
         '***************************** Reporte Solo Diario *******************************************
@@ -60,7 +61,7 @@ Public Class frmEmailReportesDeajustesPorCorreo
                 Case 12
                     Mes = "Diciembre de " + CStr(intYear)
             End Select
-            Dim FechaInicio As String = CDate(CStr(intMonth) + "/1/" + CStr(intYear)).ToString("dd-MMM-yyyy")
+            Dim FechaInicio As String = CDate(CStr(intMonth) + "/1/" + CStr(intYear)).ToString("yyyy-MM-dd")
             'FechaInicio = "01-Mar-2019"
             'Dia = "31-Mar-2019"
             'CargaDatos(Dia)
@@ -143,9 +144,9 @@ Public Class frmEmailReportesDeajustesPorCorreo
     End Sub
     Private Sub EnviaCorreoReporteManual(ByVal Dia As String, ByVal FechaInicio As String)
         Try
-            Dim DestinatariosTO As String = CargaDestinatarios("RptAjustesFin", "TO") '"jcarlos@specializedharness.com, almacen@specializedharness.com"  '"julio.gallegos@specializedharness.com" '"bgarcia@bitech.net, mespi@specializedharness.com, julio.gallegos@specializedharness.com"
-            Dim DestinatariosCC As String = CargaDestinatarios("RptAjustesFin", "CC")
-            Dim DestinatariosBCC As String = CargaDestinatarios("RptAjustesFin", "BCC")
+            Dim DestinatariosTO As String = CargaDestinatarios("RptAjustesFin", "TO", "") '"jcarlos@specializedharness.com, almacen@specializedharness.com"  '"julio.gallegos@specializedharness.com" '"bgarcia@bitech.net, mespi@specializedharness.com, julio.gallegos@specializedharness.com"
+            Dim DestinatariosCC As String = CargaDestinatarios("RptAjustesFin", "CC", "")
+            Dim DestinatariosBCC As String = CargaDestinatarios("RptAjustesFin", "BCC", "")
             Dim EnviadoPor As String = "shpitreports@gmail.com"
             Dim CorreoAjustes As String = ""
             Dim RutaAjustes As String = ""
@@ -174,7 +175,7 @@ Public Class frmEmailReportesDeajustesPorCorreo
                 CorreoAjustes = "No hay ajustes registrados el periodo de " + CDate(FechaInicio).ToString("dd-MMM-yyyy") + " a " + CDate(Dia).ToString("dd-MMM-yyyy") + vbNewLine
             End If
             Correo += vbNewLine + vbNewLine
-            Correo += "Por favor no responder este correo" + vbNewLine + "Gracias"
+            Correo += "Favor de no responder a este correo" + vbNewLine + "Gracias"
             'se envia email ade advertencia
             Dim _Message As New System.Net.Mail.MailMessage()
             Dim _SMTP As New System.Net.Mail.SmtpClient
@@ -224,10 +225,10 @@ Public Class frmEmailReportesDeajustesPorCorreo
     End Sub
     Private Sub EnviaCorreoMensual(ByVal Dia As String, ByVal FechaInicio As String, ByVal Mes As String)
         'Try
-        Dim DestinatariosTO As String = CargaDestinatarios("RptAjustesFin", "TO") '"jcarlos@specializedharness.com, almacen@specializedharness.com"  '"julio.gallegos@specializedharness.com" '"bgarcia@bitech.net, mespi@specializedharness.com, julio.gallegos@specializedharness.com"
-            Dim DestinatariosCC As String = CargaDestinatarios("RptAjustesFin", "CC")
-            Dim DestinatariosBCC As String = CargaDestinatarios("RptAjustesFin", "BCC")
-            Dim EnviadoPor As String = "shp.app@specializedharness.com"
+        Dim DestinatariosTO As String = CargaDestinatarios("RptAjustesFin", "TO", "") '"jcarlos@specializedharness.com, almacen@specializedharness.com"  '"julio.gallegos@specializedharness.com" '"bgarcia@bitech.net, mespi@specializedharness.com, julio.gallegos@specializedharness.com"
+        Dim DestinatariosCC As String = CargaDestinatarios("RptAjustesFin", "CC", "")
+        Dim DestinatariosBCC As String = CargaDestinatarios("RptAjustesFin", "BCC", "")
+        Dim EnviadoPor As String = "shp.app@specializedharness.com"
             Dim CorreoAjustes As String = ""
             Dim RutaAjustes As String = ""
             Dim Correo As String = ""
@@ -255,9 +256,9 @@ Public Class frmEmailReportesDeajustesPorCorreo
                 CorreoAjustes = "No hay ajustes registrados este mes" + vbNewLine
             End If
             Correo += vbNewLine + vbNewLine
-            Correo += "Por favor no responder este correo" + vbNewLine + "Gracias"
-            'se envia email ade advertencia
-            Dim _Message As New System.Net.Mail.MailMessage()
+        Correo += "Favor de no responder a este correo" + vbNewLine + "Gracias"
+        'se envia email ade advertencia
+        Dim _Message As New System.Net.Mail.MailMessage()
             Dim _SMTP As New System.Net.Mail.SmtpClient
             'Dim att As New System.Net.Mail.Attachment("\\bimexserver\Desarrollo de Software\Reporte de AUs\AU's Subidos a SEA.xlsx") ', System.Net.Mime.TransferEncoding.Base64
 
@@ -361,9 +362,9 @@ Public Class frmEmailReportesDeajustesPorCorreo
     End Sub
     Private Sub EnviaCorreo(ByVal Dia As String)
         Try
-            Dim DestinatariosTO As String = CargaDestinatarios("RptAjustesFin", "TO") '"julio.gallegos@specializedharness.com" '"bgarcia@bitech.net, mespi@specializedharness.com, julio.gallegos@specializedharness.com"
-            Dim DestinatariosCC As String = CargaDestinatarios("RptAjustesFin", "CC")
-            Dim DestinatariosBCC As String = CargaDestinatarios("RptAjustesFin", "BCC")
+            Dim DestinatariosTO As String = CargaDestinatarios("RptAjustesFin", "TO", "rbtg715@specializedharness.com") '') '"julio.gallegos@specializedharness.com" '"bgarcia@bitech.net, mespi@specializedharness.com, julio.gallegos@specializedharness.com"
+            Dim DestinatariosCC As String = CargaDestinatarios("RptAjustesFin", "CC", "")
+            Dim DestinatariosBCC As String = CargaDestinatarios("RptAjustesFin", "BCC", "")
             Dim EnviadoPor As String = "shp.app@specializedharness.com"
             Dim CorreoAjustes As String = ""
             Dim RutaAjustes As String = ""
@@ -390,7 +391,7 @@ Public Class frmEmailReportesDeajustesPorCorreo
                 CorreoAjustes = "No hay ajustes registrados el día de hoy" + vbNewLine
             End If
             Correo += vbNewLine + vbNewLine
-            Correo += "Por favor no responder este correo" + vbNewLine + "Gracias"
+            Correo += "Favor de no responder a este correo" + vbNewLine + "Gracias"
             'se envia email ade advertencia
             Dim _Message As New System.Net.Mail.MailMessage()
             Dim _SMTP As New System.Net.Mail.SmtpClient
@@ -438,7 +439,7 @@ Public Class frmEmailReportesDeajustesPorCorreo
             MsgBox(ex.Message.ToString)
         End Try
     End Sub
-    Private Function CargaDestinatarios(ByVal Modulo As String, ByVal OpcionEnvio As String)
+    Private Function CargaDestinatarios(ByVal Modulo As String, ByVal OpcionEnvio As String, Exclude As String)
         Dim Destinatarios As String = ""
         Dim Edo As String = ""
         Dim contador As Long = 0
@@ -446,15 +447,18 @@ Public Class frmEmailReportesDeajustesPorCorreo
             Try
                 Dim cmd As SqlCommand
                 Dim dr As SqlDataReader
-                Dim Query As String = "SELECT Email FROM tblUserEmails WHERE Module=@Module AND Active=1 AND OptionToSend=@OptionToSend"
+
+                Dim Query As String = "SELECT Email FROM tblUserEmails WHERE Module=@Module AND Active=1 AND OptionToSend=@OptionToSend AND Email <> @Exclude"
+
                 cmd = New SqlCommand(Query, cnn)
                 cmd.CommandType = CommandType.Text
                 cmd.Parameters.Add("@Module", SqlDbType.NVarChar).Value = Modulo
                 cmd.Parameters.Add("@OptionToSend", SqlDbType.NVarChar).Value = OpcionEnvio
+                cmd.Parameters.Add("@Exclude", SqlDbType.NVarChar).Value = Exclude
                 cnn.Open()
                 dr = cmd.ExecuteReader
                 TE.Load(dr)
-              cnn.Close()
+                cnn.Close()
             Catch ex As Exception
                 Edo = cnn.State.ToString
                 If Edo = "Open" Then cnn.Close()
@@ -462,11 +466,16 @@ Public Class frmEmailReportesDeajustesPorCorreo
             End Try
             If TE.Rows.Count > 0 Then
                 For NM As Integer = 0 To TE.Rows.Count - 1
+
                     Destinatarios += TE.Rows(NM).Item("Email").ToString
                     If NM < TE.Rows.Count - 1 Then Destinatarios += ","
+
                 Next
             End If
+
+
         End Using
+
         Return Destinatarios
     End Function
     Private Function CreaCSV(ByVal Dia As String)
