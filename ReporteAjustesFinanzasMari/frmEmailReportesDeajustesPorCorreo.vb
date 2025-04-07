@@ -8,8 +8,8 @@ Imports System.Text
 Imports System.String
 Public Class frmEmailReportesDeajustesPorCorreo
     'Dim strCnn As String = "Server=SHPLAPSIS01\SQLEXPRESS2012; Database=SEA; User ID=sa;Password=SHPadmin14%"
-    Dim strCnn As String = "Server=10.17.182.12\SQLEXPRESS2012;Database=SEA;User ID=sa;Password=SHPadmin14%"
-    'Dim strCnn As String = "Server=10.17.182.36\SQLEXPRESS2012;Database=SEA;User ID=sa;Password=SHPadmin14%"
+    'Dim strCnn As String = "Server=10.17.182.12\SQLEXPRESS2012;Database=SEA;User ID=sa;Password=SHPadmin14%"
+    Dim strCnn As String = "Server=10.17.182.36\SQLEXPRESS2012;Database=SEA;User ID=sa;Password=SHPadmin14%"
     Dim cnn As New SqlConnection(strCnn)
     Private tblAjustes As New DataTable
     Dim QtyMovimientos, QtyPsitivos, QtyNegativos, QtyPsitivosBB, QtyNegativosBB, QtyMovimientosBB As Integer
@@ -70,7 +70,8 @@ Public Class frmEmailReportesDeajustesPorCorreo
             'System.Threading.Thread.Sleep(60000)
             ' CargaDatosMensual("31-Oct-2024", "01-Oct-2024", "Octubre de 2024")
         Else
-            CargaDatos(Dia)
+            CargaDatos(Dia, "Reporte")
+            CargaDatos(Dia, "Reporte detallado")
             'CargaDatos("10-Oct-2024")
 
         End If
@@ -225,9 +226,9 @@ Public Class frmEmailReportesDeajustesPorCorreo
     End Sub
     Private Sub EnviaCorreoMensual(ByVal Dia As String, ByVal FechaInicio As String, ByVal Mes As String)
         'Try
-        Dim DestinatariosTO As String = CargaDestinatarios("RptAjustesFin", "TO", "") '"jcarlos@specializedharness.com, almacen@specializedharness.com"  '"julio.gallegos@specializedharness.com" '"bgarcia@bitech.net, mespi@specializedharness.com, julio.gallegos@specializedharness.com"
-        Dim DestinatariosCC As String = CargaDestinatarios("RptAjustesFin", "CC", "")
-        Dim DestinatariosBCC As String = CargaDestinatarios("RptAjustesFin", "BCC", "")
+        Dim DestinatariosTO As String = CargaDestinatarios("RptAjustesFinMensual", "TO", "") '"jcarlos@specializedharness.com, almacen@specializedharness.com"  '"julio.gallegos@specializedharness.com" '"bgarcia@bitech.net, mespi@specializedharness.com, julio.gallegos@specializedharness.com"
+        Dim DestinatariosCC As String = CargaDestinatarios("RptAjustesFinMensual", "CC", "")
+        Dim DestinatariosBCC As String = CargaDestinatarios("RptAjustesFinMensual", "BCC", "")
         Dim EnviadoPor As String = "shp.app@specializedharness.com"
             Dim CorreoAjustes As String = ""
             Dim RutaAjustes As String = ""
@@ -304,7 +305,7 @@ Public Class frmEmailReportesDeajustesPorCorreo
         '    MsgBox(ex.Message.ToString)
         'End Try
     End Sub
-    Private Sub CargaDatos(ByVal Dia As String)
+    Private Sub CargaDatos(ByVal Dia As String, tipoReporte As String)
         tblAjustes.Clear()
         Using TN As New DataTable
             Dim Edo, PN, BinBalance As String
@@ -312,7 +313,17 @@ Public Class frmEmailReportesDeajustesPorCorreo
             Try 'tblItemsFinantialInventoryControlTempforProductionProcess" & sTempTableName 
                 Dim cmd As SqlCommand
                 Dim dr As SqlDataReader
-                Dim Query As String = "SELECT tblItemsTags.Tag, tblItemsTags.PN, tblItemsTags.Balance, tblItemsAdjustmentTAGs.AdjusmentType, (tblItemsAdjustmentTAGs.QtyNew-tblItemsAdjustmentTAGs.QtyActual) AS Diff, tblItemsAdjustmentTAGs.QtyActual, tblItemsAdjustmentTAGs.QtyNew, tblItemsAdjustmentTAGs.Amount, tblItemsAdjustmentTAGs.CreatedDate, tblItemsAdjustmentTAGs.CreatedBy, tblItemsAdjustmentTAGs.Reason, tblItemsAdjustmentTAGs.Notes, tblItemsAdjustmentTAGs.ApprovedBy, tblItemsAdjustmentTAGs.ScrapCategory,tblItemsAdjustmentTAGs.AjusteUsuario,tblItemsAdjustmentTAGs.AdditionalNotes FROM tblItemsTags INNER JOIN tblItemsAdjustmentTAGs ON tblItemsTags.TAG = tblItemsAdjustmentTAGs.TAG WHERE CAST(tblItemsAdjustmentTAGs.Createddate AS DATE)=@Dia ORDER BY tblItemsAdjustmentTAGs.CreatedDate ASC"
+
+                'Dim Query As String = "SELECT tblItemsTags.Tag, tblItemsTags.PN, tblItemsTags.Balance, tblItemsAdjustmentTAGs.AdjusmentType, (tblItemsAdjustmentTAGs.QtyNew-tblItemsAdjustmentTAGs.QtyActual) AS Diff, tblItemsAdjustmentTAGs.QtyActual, tblItemsAdjustmentTAGs.QtyNew, tblItemsAdjustmentTAGs.Amount, tblItemsAdjustmentTAGs.CreatedDate, tblItemsAdjustmentTAGs.CreatedBy, tblItemsAdjustmentTAGs.Reason, tblItemsAdjustmentTAGs.Notes, tblItemsAdjustmentTAGs.ApprovedBy, tblItemsAdjustmentTAGs.ScrapCategory,tblItemsAdjustmentTAGs.AjusteUsuario,tblItemsAdjustmentTAGs.AdditionalNotes FROM tblItemsTags INNER JOIN tblItemsAdjustmentTAGs ON tblItemsTags.TAG = tblItemsAdjustmentTAGs.TAG WHERE CAST(tblItemsAdjustmentTAGs.Createddate AS DATE)=@Dia ORDER BY tblItemsAdjustmentTAGs.CreatedDate ASC"
+                'Se agrega nueva condición al query, AMOUN >= 75
+                Dim Query As String = ""
+
+                If tipoReporte.Equals("Reporte", StringComparison.OrdinalIgnoreCase) Then
+                    Query = "SELECT tblItemsTags.Tag, tblItemsTags.PN, tblItemsTags.Balance, tblItemsAdjustmentTAGs.AdjusmentType, (tblItemsAdjustmentTAGs.QtyNew-tblItemsAdjustmentTAGs.QtyActual) AS Diff, tblItemsAdjustmentTAGs.QtyActual, tblItemsAdjustmentTAGs.QtyNew, tblItemsAdjustmentTAGs.Amount, tblItemsAdjustmentTAGs.CreatedDate, tblItemsAdjustmentTAGs.CreatedBy, tblItemsAdjustmentTAGs.Reason, tblItemsAdjustmentTAGs.Notes, tblItemsAdjustmentTAGs.ApprovedBy, tblItemsAdjustmentTAGs.ScrapCategory,tblItemsAdjustmentTAGs.AjusteUsuario,tblItemsAdjustmentTAGs.AdditionalNotes FROM tblItemsTags INNER JOIN tblItemsAdjustmentTAGs ON tblItemsTags.TAG = tblItemsAdjustmentTAGs.TAG WHERE CAST(tblItemsAdjustmentTAGs.Createddate AS DATE)=@Dia AND AMOUNT >= 75 ORDER BY tblItemsAdjustmentTAGs.CreatedDate ASC"
+                ElseIf tipoReporte.Equals("Reporte detallado", StringComparison.OrdinalIgnoreCase) Then
+                    Query = "SELECT tblItemsTags.Tag, tblItemsTags.PN, tblItemsTags.Balance, tblItemsAdjustmentTAGs.AdjusmentType, (tblItemsAdjustmentTAGs.QtyNew-tblItemsAdjustmentTAGs.QtyActual) AS Diff, tblItemsAdjustmentTAGs.QtyActual, tblItemsAdjustmentTAGs.QtyNew, tblItemsAdjustmentTAGs.Amount, tblItemsAdjustmentTAGs.CreatedDate, tblItemsAdjustmentTAGs.CreatedBy, tblItemsAdjustmentTAGs.Reason, tblItemsAdjustmentTAGs.Notes, tblItemsAdjustmentTAGs.ApprovedBy, tblItemsAdjustmentTAGs.ScrapCategory,tblItemsAdjustmentTAGs.AjusteUsuario,tblItemsAdjustmentTAGs.AdditionalNotes FROM tblItemsTags INNER JOIN tblItemsAdjustmentTAGs ON tblItemsTags.TAG = tblItemsAdjustmentTAGs.TAG WHERE CAST(tblItemsAdjustmentTAGs.Createddate AS DATE)=@Dia ORDER BY tblItemsAdjustmentTAGs.CreatedDate ASC"
+                End If
+
                 cmd = New SqlCommand(Query, cnn)
                 cmd.CommandType = CommandType.Text
                 cmd.Parameters.Add("@Dia", SqlDbType.NVarChar).Value = Dia
@@ -352,7 +363,7 @@ Public Class frmEmailReportesDeajustesPorCorreo
                     Next
                 End If
                 'Se envia el reporte de los ajustes
-                EnviaCorreo(Dia)
+                EnviaCorreo(Dia, tipoReporte)
             Catch ex As Exception
                 Edo = cnn.State.ToString
                 If Edo = "Open" Then cnn.Close()
@@ -360,11 +371,20 @@ Public Class frmEmailReportesDeajustesPorCorreo
             End Try
         End Using
     End Sub
-    Private Sub EnviaCorreo(ByVal Dia As String)
+    Private Sub EnviaCorreo(ByVal Dia As String, tipoReporte As String)
         Try
-            Dim DestinatariosTO As String = CargaDestinatarios("RptAjustesFin", "TO", "rbtg715@specializedharness.com") '') '"julio.gallegos@specializedharness.com" '"bgarcia@bitech.net, mespi@specializedharness.com, julio.gallegos@specializedharness.com"
-            Dim DestinatariosCC As String = CargaDestinatarios("RptAjustesFin", "CC", "")
-            Dim DestinatariosBCC As String = CargaDestinatarios("RptAjustesFin", "BCC", "")
+            Dim DestinatariosTO As String
+            Dim DestinatariosCC As String
+            Dim DestinatariosBCC As String
+
+            If tipoReporte.Equals("Reporte", StringComparison.OrdinalIgnoreCase) Then
+                DestinatariosTO = CargaDestinatarios("RptAjustesFin", "TO", "") '') '"julio.gallegos@specializedharness.com" '"bgarcia@bitech.net, mespi@specializedharness.com, julio.gallegos@specializedharness.com"
+                DestinatariosCC = CargaDestinatarios("RptAjustesFin", "CC", "")
+                DestinatariosBCC = CargaDestinatarios("RptAjustesFin", "BCC", "")
+            ElseIf tipoReporte.Equals("Reporte detallado", StringComparison.OrdinalIgnoreCase) Then
+                DestinatariosTO = CargaDestinatarios("RptAjustesFinDetallado", "TO", "") '') '"julio.gallegos@specializedharness.com" '"bgarcia@bitech.net, mespi@specializedharness.com, julio.gallegos@specializedharness.com"
+            End If
+
             Dim EnviadoPor As String = "shp.app@specializedharness.com"
             Dim CorreoAjustes As String = ""
             Dim RutaAjustes As String = ""
