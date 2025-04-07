@@ -1,15 +1,10 @@
 ﻿Imports System.Data.SqlClient
-Imports System.Data.OleDb
-Imports System.Data
 Imports System.IO
-Imports System.Net
-Imports System.DirectoryServices
 Imports System.Text
-Imports System.String
 Public Class frmEmailReportesDeajustesPorCorreo
     'Dim strCnn As String = "Server=SHPLAPSIS01\SQLEXPRESS2012; Database=SEA; User ID=sa;Password=SHPadmin14%"
-    'Dim strCnn As String = "Server=10.17.182.12\SQLEXPRESS2012;Database=SEA;User ID=sa;Password=SHPadmin14%"
-    Dim strCnn As String = "Server=10.17.182.36\SQLEXPRESS2012;Database=SEA;User ID=sa;Password=SHPadmin14%"
+    Dim strCnn As String = "Server=10.17.182.12\SQLEXPRESS2012;Database=SEA;User ID=sa;Password=SHPadmin14%"
+    'Dim strCnn As String = "Server=10.17.182.36\SQLEXPRESS2012;Database=SEA;User ID=sa;Password=SHPadmin14%"
     Dim cnn As New SqlConnection(strCnn)
     Private tblAjustes As New DataTable
     Dim QtyMovimientos, QtyPsitivos, QtyNegativos, QtyPsitivosBB, QtyNegativosBB, QtyMovimientosBB As Integer
