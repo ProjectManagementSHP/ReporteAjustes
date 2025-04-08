@@ -65,14 +65,16 @@ Public Class frmEmailReportesDeajustesPorCorreo
             'System.Threading.Thread.Sleep(60000)
             ' CargaDatosMensual("31-Oct-2024", "01-Oct-2024", "Octubre de 2024")
         Else
-            CargaDatos(Dia, "Reporte")
-            CargaDatos(Dia, "Reporte detallado")
+            CargaDatos(Dia, "Reporte") 'Se agrega condición amount>=75 por roberto garcia
+            CargaDatos(Dia, "Reporte detallado") 'Solo para almacén ya que piden el reporte completo
             'CargaDatos("10-Oct-2024")
 
         End If
         '*********************************************************************************************
         Application.Exit()
     End Sub
+
+
     Private Sub CargaDatosMensual(ByVal Dia As String, ByVal FechaInicio As String, ByVal Mes As String)
         tblAjustes.Clear()
         Using TN As New DataTable
@@ -164,7 +166,7 @@ Public Class frmEmailReportesDeajustesPorCorreo
                 CorreoAjustes += "Valor BinBalance Positivo: $" + Math.Round(ValorPositivosBB, 2).ToString + vbNewLine
                 CorreoAjustes += "Valor BinBalance Negativo: $" + Math.Round(ValorNegativosBB, 2).ToString + vbNewLine
                 CorreoAjustes += vbNewLine
-                RutaAjustes = CreaCSV(Dia)
+                RutaAjustes = CreaCSV(Dia, "Reporte manual")
             End If
             If tblAjustes.Rows.Count = 0 Then
                 RutaAjustes = ""
@@ -245,8 +247,8 @@ Public Class frmEmailReportesDeajustesPorCorreo
                 CorreoAjustes += "Valor BinBalance Positivo: $" + Math.Round(ValorPositivosBB, 2).ToString + vbNewLine
                 CorreoAjustes += "Valor BinBalance Negativo: $" + Math.Round(ValorNegativosBB, 2).ToString + vbNewLine
                 CorreoAjustes += vbNewLine
-                RutaAjustes = CreaCSV(Dia)
-            End If
+            RutaAjustes = CreaCSV(Dia, "Reporte mensual")
+        End If
             If tblAjustes.Rows.Count = 0 Then
                 RutaAjustes = ""
                 CorreoAjustes = "No hay ajustes registrados este mes" + vbNewLine
@@ -371,13 +373,17 @@ Public Class frmEmailReportesDeajustesPorCorreo
             Dim DestinatariosTO As String
             Dim DestinatariosCC As String
             Dim DestinatariosBCC As String
+            Dim Tipo As String
+
 
             If tipoReporte.Equals("Reporte", StringComparison.OrdinalIgnoreCase) Then
                 DestinatariosTO = CargaDestinatarios("RptAjustesFin", "TO", "") '') '"julio.gallegos@specializedharness.com" '"bgarcia@bitech.net, mespi@specializedharness.com, julio.gallegos@specializedharness.com"
                 DestinatariosCC = CargaDestinatarios("RptAjustesFin", "CC", "")
                 DestinatariosBCC = CargaDestinatarios("RptAjustesFin", "BCC", "")
+                Tipo = "Reporte"
             ElseIf tipoReporte.Equals("Reporte detallado", StringComparison.OrdinalIgnoreCase) Then
                 DestinatariosTO = CargaDestinatarios("RptAjustesFinDetallado", "TO", "") '') '"julio.gallegos@specializedharness.com" '"bgarcia@bitech.net, mespi@specializedharness.com, julio.gallegos@specializedharness.com"
+                Tipo = "Reporte detallado"
             End If
 
             Dim EnviadoPor As String = "shp.app@specializedharness.com"
@@ -399,7 +405,16 @@ Public Class frmEmailReportesDeajustesPorCorreo
                 CorreoAjustes += "Valor BinBalance Positivo: $" + Math.Round(ValorPositivosBB, 2).ToString + vbNewLine
                 CorreoAjustes += "Valor BinBalance Negativo: $" + Math.Round(ValorNegativosBB, 2).ToString + vbNewLine
                 CorreoAjustes += vbNewLine
-                RutaAjustes = CreaCSV(Dia)
+
+
+
+                If tipoReporte.Equals("Reporte detallado", StringComparison.OrdinalIgnoreCase) Then
+                    RutaAjustes = CreaCSV(Dia, "Reporte detallado")
+                Else
+                    RutaAjustes = CreaCSV(Dia, "Reporte")
+                End If
+
+
             End If
             If tblAjustes.Rows.Count = 0 Then
                 RutaAjustes = ""
@@ -432,7 +447,7 @@ Public Class frmEmailReportesDeajustesPorCorreo
             End If
             If BanderaDestinatarios > 0 Then
                 _Message.From = New System.Net.Mail.MailAddress(EnviadoPor, "", System.Text.Encoding.UTF8) 'Quien lo envía
-                _Message.Subject = "Reporte de Ajustes " + Dia
+                _Message.Subject = tipoReporte + " de Ajustes " + Dia
                 _Message.SubjectEncoding = System.Text.Encoding.UTF8 'Codificacion
                 _Message.Body = CorreoAjustes + vbNewLine + Correo
                 _Message.BodyEncoding = System.Text.Encoding.UTF8
@@ -493,134 +508,142 @@ Public Class frmEmailReportesDeajustesPorCorreo
 
         Return Destinatarios
     End Function
-    Private Function CreaCSV(ByVal Dia As String)
+    Private Function CreaCSV(ByVal Dia As String, tipoReporte As String)
         Dim Banderilla As Integer = 0
         Dim Fecha As Date = CDate(Dia)
-        Dim ArchivoNombre As String = "RPT" + Fecha.ToString("yyyy") + Fecha.ToString("MM") + Fecha.ToString("dd") + Now.ToString("HH") + Now.ToString("mm") + ".csv"
+        Dim ArchivoNombre As String
+
+        If tipoReporte.Equals("Reporte detallado", StringComparison.OrdinalIgnoreCase) Then
+            ArchivoNombre = "RPTD" + Fecha.ToString("yyyy") + Fecha.ToString("MM") + Fecha.ToString("dd") + Now.ToString("HH") + Now.ToString("mm") + ".csv"
+        Else
+            ArchivoNombre = "RPT" + Fecha.ToString("yyyy") + Fecha.ToString("MM") + Fecha.ToString("dd") + Now.ToString("HH") + Now.ToString("mm") + ".csv"
+        End If
+
+
         Dim Ruta As String = Path.GetTempPath() & ArchivoNombre
         'Tag,PN,Balance,AdjusmentType,Diff,QtyActual,QtyNew,Amount,CreatedDate,CreatedBy,Reason,Notes, ApprovedBy
         'Try
         Dim AUX As String = "", MyTag As String = "", ProductType As String = "", UnitPrice As Decimal = 0, Piezas As Decimal = 0, Amount As Decimal = 0, TAG As String = ""
-            Dim fs As FileStream = File.Create(Ruta)
-            Dim CadenaBB As String = vbNewLine + vbNewLine + vbNewLine, PN As String = "", BB As String
+        Dim fs As FileStream = File.Create(Ruta)
+        Dim CadenaBB As String = vbNewLine + vbNewLine + vbNewLine, PN As String = "", BB As String
         Dim Cadena As String = "Tag,PN,Balance,AdjusmentType,Diff,QtyActual,QtyNew,Unit Price,Amount,CreatedDate,CreatedBy,Reason,Notes,ApprovedBy,BinBalance,ProductType,ScrapCategory,Usuario,AdditionalNotes" + vbNewLine  '"Num,Issue," + vbNewLine
         Dim infoTitulos As Byte() = New UTF8Encoding(True).GetBytes(Cadena)
-            fs.Write(infoTitulos, 0, infoTitulos.Length)
-            For NM As Integer = 0 To tblAjustes.Rows.Count - 1
-                UnitPrice = 0
-                Piezas = 0
-                Amount = 0
-                TAG = ""
-                MyTag = LTrim(RTrim(tblAjustes.Rows(NM).Item("TAG").ToString))
-                PN = LTrim(RTrim(tblAjustes.Rows(NM).Item("PN").ToString))
-                BB = BuscaSiEsBinBalance(PN)
-                ProductType = BuscaSiEsProductType(PN)
-                If MyTag = "" Then
-                    PN = PN
+        fs.Write(infoTitulos, 0, infoTitulos.Length)
+        For NM As Integer = 0 To tblAjustes.Rows.Count - 1
+            UnitPrice = 0
+            Piezas = 0
+            Amount = 0
+            TAG = ""
+            MyTag = LTrim(RTrim(tblAjustes.Rows(NM).Item("TAG").ToString))
+            PN = LTrim(RTrim(tblAjustes.Rows(NM).Item("PN").ToString))
+            BB = BuscaSiEsBinBalance(PN)
+            ProductType = BuscaSiEsProductType(PN)
+            If MyTag = "" Then
+                PN = PN
+            End If
+            If PN = "WAA167-6" Or PN = "CA-M85049/49-2-10W" Then
+                PN = PN
+            End If
+            If BB = "False" Then
+                AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("TAG").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                TAG = AUX
+                Cadena = AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("PN").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Cadena += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("Balance").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Cadena += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("AdjusmentType").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Cadena += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("Diff").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Piezas = CDec(Val(AUX))
+                Cadena += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("QtyActual").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Cadena += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("QtyNew").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Cadena += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("Amount").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Amount = CDec(Val(AUX))
+                If Math.Abs(Piezas) = 0 Then
+                    'buscamos el precio unitario
+                    UnitPrice = BuscamosPrecioUnitarioTags(TAG)
+                Else
+                    'calculamos el precio unitario
+                    UnitPrice = Amount / Math.Abs(Piezas)
                 End If
-                If PN = "WAA167-6" Or PN = "CA-M85049/49-2-10W" Then
-                    PN = PN
-                End If
-                If BB = "False" Then
-                    AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("TAG").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    TAG = AUX
-                    Cadena = AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("PN").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    Cadena += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("Balance").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    Cadena += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("AdjusmentType").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    Cadena += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("Diff").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    Piezas = CDec(Val(AUX))
-                    Cadena += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("QtyActual").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    Cadena += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("QtyNew").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    Cadena += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("Amount").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    Amount = CDec(Val(AUX))
-                    If Math.Abs(Piezas) = 0 Then
-                        'buscamos el precio unitario
-                        UnitPrice = BuscamosPrecioUnitarioTags(TAG)
-                    Else
-                        'calculamos el precio unitario
-                        UnitPrice = Amount / Math.Abs(Piezas)
-                    End If
-                    Cadena += CStr(UnitPrice) + ","
-                    Cadena += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("CreatedDate").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    Cadena += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("CreatedBy").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    Cadena += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("Reason").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    Cadena += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("Notes").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    Cadena += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("ApprovedBy").ToString.ToLower))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    Cadena += AUX + ","
-                    Cadena += "0,"
-                    AUX = ProductType.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    Cadena += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("ScrapCategory").ToString))
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
+                Cadena += CStr(UnitPrice) + ","
+                Cadena += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("CreatedDate").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Cadena += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("CreatedBy").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Cadena += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("Reason").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Cadena += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("Notes").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Cadena += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("ApprovedBy").ToString.ToLower))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Cadena += AUX + ","
+                Cadena += "0,"
+                AUX = ProductType.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Cadena += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("ScrapCategory").ToString))
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
                 Cadena += AUX + ","
                 AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("AjusteUsuario").ToString))
                 AUX = AUX.Replace(vbCr, " ")
@@ -634,113 +657,113 @@ Public Class frmEmailReportesDeajustesPorCorreo
                 Cadena += AUX + ","
                 Cadena += vbNewLine
                 Dim info As Byte() = New UTF8Encoding(True).GetBytes(Cadena)
-                    fs.Write(info, 0, info.Length)
+                fs.Write(info, 0, info.Length)
+            End If
+        Next
+        For KK As Integer = 0 To tblAjustes.Rows.Count - 1
+            PN = LTrim(RTrim(tblAjustes.Rows(KK).Item("PN").ToString))
+            BB = BuscaSiEsBinBalance(PN)
+            If BB = "True" Then
+                AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("TAG").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                TAG = AUX
+                CadenaBB = AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("PN").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                CadenaBB += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("Balance").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                CadenaBB += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("AdjusmentType").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                CadenaBB += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("Diff").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Piezas = CDec(Val(AUX))
+                CadenaBB += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("QtyActual").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                CadenaBB += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("QtyNew").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                CadenaBB += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("Amount").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                'CadenaBB += AUX + ","
+                Amount = CDec(Val(AUX))
+                If Math.Abs(Piezas) = 0 Then
+                    'buscamos el precio unitario
+                    UnitPrice = BuscamosPrecioUnitarioTags(TAG)
+                Else
+                    'calculamos el precio unitario
+                    UnitPrice = Amount / Math.Abs(Piezas)
                 End If
-            Next
-            For KK As Integer = 0 To tblAjustes.Rows.Count - 1
-                PN = LTrim(RTrim(tblAjustes.Rows(KK).Item("PN").ToString))
-                BB = BuscaSiEsBinBalance(PN)
-                If BB = "True" Then
-                    AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("TAG").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    TAG = AUX
-                    CadenaBB = AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("PN").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    CadenaBB += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("Balance").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    CadenaBB += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("AdjusmentType").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    CadenaBB += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("Diff").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    Piezas = CDec(Val(AUX))
-                    CadenaBB += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("QtyActual").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    CadenaBB += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("QtyNew").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    CadenaBB += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("Amount").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    'CadenaBB += AUX + ","
-                    Amount = CDec(Val(AUX))
-                    If Math.Abs(Piezas) = 0 Then
-                        'buscamos el precio unitario
-                        UnitPrice = BuscamosPrecioUnitarioTags(TAG)
-                    Else
-                        'calculamos el precio unitario
-                        UnitPrice = Amount / Math.Abs(Piezas)
-                    End If
-                    CadenaBB += CStr(UnitPrice) + ","
-                    CadenaBB += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("CreatedDate").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    CadenaBB += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("CreatedBy").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    CadenaBB += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("Reason").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    CadenaBB += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("Notes").ToString))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    CadenaBB += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("ApprovedBy").ToString.ToLower))
-                    AUX = AUX.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    CadenaBB += AUX + ","
-                    CadenaBB += "1,"
-                    AUX = ProductType.Replace(vbNewLine, " ")
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
-                    CadenaBB += AUX + ","
-                    AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("ScrapCategory").ToString))
-                    AUX = AUX.Replace(vbCr, " ")
-                    AUX = AUX.Replace(vbCrLf, " ")
-                    AUX = AUX.Replace(",", " ")
+                CadenaBB += CStr(UnitPrice) + ","
+                CadenaBB += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("CreatedDate").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                CadenaBB += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("CreatedBy").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                CadenaBB += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("Reason").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                CadenaBB += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("Notes").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                CadenaBB += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("ApprovedBy").ToString.ToLower))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                CadenaBB += AUX + ","
+                CadenaBB += "1,"
+                AUX = ProductType.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                CadenaBB += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("ScrapCategory").ToString))
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
                 Cadena += AUX + ","
                 AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("AjusteUsuario").ToString))
                 AUX = AUX.Replace(vbCr, " ")
@@ -753,12 +776,12 @@ Public Class frmEmailReportesDeajustesPorCorreo
                 AUX = AUX.Replace(",", " ")
                 Cadena += AUX + ","
                 CadenaBB += vbNewLine
-                    Dim info As Byte() = New UTF8Encoding(True).GetBytes(CadenaBB)
-                    fs.Write(info, 0, info.Length)
-                End If
-            Next
-            fs.Close()
-            Banderilla += 1
+                Dim info As Byte() = New UTF8Encoding(True).GetBytes(CadenaBB)
+                fs.Write(info, 0, info.Length)
+            End If
+        Next
+        fs.Close()
+        Banderilla += 1
         'Catch ex As Exception
         '    MessageBox.Show(ex.Message.ToString + vbNewLine + "Error in CreaCSV", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         'End Try
