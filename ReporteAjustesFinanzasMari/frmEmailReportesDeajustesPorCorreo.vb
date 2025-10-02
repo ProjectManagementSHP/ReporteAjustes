@@ -324,7 +324,32 @@ Public Class frmEmailReportesDeajustesPorCorreo
                             FROM tblItemsTags INNER JOIN tblItemsAdjustmentTAGs ON tblItemsTags.TAG = tblItemsAdjustmentTAGs.TAG WHERE CAST(tblItemsAdjustmentTAGs.Createddate AS DATE)
                             = @Dia AND AMOUNT >= 75 ORDER BY tblItemsAdjustmentTAGs.CreatedDate ASC"
                 ElseIf tipoReporte.Equals("Reporte detallado", StringComparison.OrdinalIgnoreCase) Then
-                    Query = "SELECT tblItemsTags.Tag, tblItemsTags.PN, (SELECT DESCRIPTION FROM TBLITEMSQB WHERE TBLITEMSQB.PN = TBLITEMSTAGS.PN AND tblItemsQB.SUBPN = TBLITEMSTAGS.SUBPN) AS Description, tblItemsTags.Balance, tblItemsAdjustmentTAGs.AdjusmentType, (tblItemsAdjustmentTAGs.QtyNew-tblItemsAdjustmentTAGs.QtyActual) AS Diff, tblItemsAdjustmentTAGs.QtyActual, tblItemsAdjustmentTAGs.QtyNew, tblItemsAdjustmentTAGs.Amount, tblItemsAdjustmentTAGs.CreatedDate, tblItemsAdjustmentTAGs.CreatedBy, tblItemsAdjustmentTAGs.Reason, tblItemsAdjustmentTAGs.Notes, tblItemsAdjustmentTAGs.ApprovedBy, tblItemsAdjustmentTAGs.ScrapCategory,tblItemsAdjustmentTAGs.AjusteUsuario FROM tblItemsTags INNER JOIN tblItemsAdjustmentTAGs ON tblItemsTags.TAG = tblItemsAdjustmentTAGs.TAG WHERE CAST(tblItemsAdjustmentTAGs.Createddate AS DATE)=@Dia ORDER BY tblItemsAdjustmentTAGs.CreatedDate ASC"
+                    Query = "SELECT  tblItemsTags.Tag, 
+		                    tblItemsTags.PN, 
+		                    (SELECT DESCRIPTION FROM TBLITEMSQB WHERE TBLITEMSQB.PN = TBLITEMSTAGS.PN AND tblItemsQB.SUBPN = TBLITEMSTAGS.SUBPN) AS Description, 
+		                    tblItemsTags.Balance,
+		                    tblItemsAdjustmentTAGs.AdjusmentType, 
+		                    (tblItemsAdjustmentTAGs.QtyNew-tblItemsAdjustmentTAGs.QtyActual) AS Diff, 
+		
+		                    CASE WHEN tblItemsTags.PN LIKE 'W%' OR tblItemsTags.PN LIKE 'C%' THEN
+
+		                    (tblItemsAdjustmentTAGs.QtyNew-tblItemsAdjustmentTAGs.QtyActual) * 0.3048
+		                    ELSE 0
+		                    END AS 'Diff (mts)',
+
+		                    tblItemsAdjustmentTAGs.QtyActual, 
+		                    tblItemsAdjustmentTAGs.QtyNew, 
+		                    tblItemsAdjustmentTAGs.Amount, 
+		                    tblItemsAdjustmentTAGs.CreatedDate, 
+		                    tblItemsAdjustmentTAGs.CreatedBy, 
+		                    tblItemsAdjustmentTAGs.Reason, 
+		                    tblItemsAdjustmentTAGs.Notes, 
+		                    tblItemsAdjustmentTAGs.ApprovedBy, 
+		                    tblItemsAdjustmentTAGs.ScrapCategory,
+		                    tblItemsAdjustmentTAGs.AjusteUsuario 
+                            FROM tblItemsTags 
+                            INNER JOIN tblItemsAdjustmentTAGs ON tblItemsTags.TAG = tblItemsAdjustmentTAGs.TAG 
+                            WHERE CAST(tblItemsAdjustmentTAGs.Createddate AS DATE)=@Dia ORDER BY tblItemsAdjustmentTAGs.CreatedDate ASC"
                 End If
 
                 cmd = New SqlCommand(Query, cnn)
