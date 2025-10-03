@@ -7,7 +7,7 @@
       "RelativeMoniker": "D:0:0:{A3DEA1E4-2A02-49D9-89E6-9BA69AEDB488}|ReporteAjustesFinanzasMari\\ReporteAjustesFinanzasMari.vbproj|solutionrelative:reporteajustesfinanzasmari\\frmemailreportesdeajustesporcorreo.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A3DEA1E4-2A02-49D9-89E6-9BA69AEDB488}|ReporteAjustesFinanzasMari\\ReporteAjustesFinanzasMari.vbproj|C:\\Users\\edgar.sandoval\\Documents\\GitHub\\ReporteAjustes\\reporteajustesfinanzasmari\\frmemailreportesdeajustesporcorreo.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}|Form",
+      "AbsoluteMoniker": "D:0:0:{A3DEA1E4-2A02-49D9-89E6-9BA69AEDB488}|ReporteAjustesFinanzasMari\\ReporteAjustesFinanzasMari.vbproj|c:\\users\\edgar.sandoval\\documents\\github\\reporteajustes\\reporteajustesfinanzasmari\\frmemailreportesdeajustesporcorreo.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}|Form",
       "RelativeMoniker": "D:0:0:{A3DEA1E4-2A02-49D9-89E6-9BA69AEDB488}|ReporteAjustesFinanzasMari\\ReporteAjustesFinanzasMari.vbproj|solutionrelative:reporteajustesfinanzasmari\\frmemailreportesdeajustesporcorreo.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}|Form"
     }
   ],
@@ -28,9 +28,9 @@
               "RelativeDocumentMoniker": "ReporteAjustesFinanzasMari\\frmEmailReportesDeajustesPorCorreo.vb",
               "ToolTip": "C:\\Users\\edgar.sandoval\\Documents\\GitHub\\ReporteAjustes\\ReporteAjustesFinanzasMari\\frmEmailReportesDeajustesPorCorreo.vb",
               "RelativeToolTip": "ReporteAjustesFinanzasMari\\frmEmailReportesDeajustesPorCorreo.vb",
-              "ViewState": "AgIAADYAAAAAAAAAAIAwwEgAAAAMAAAAAAAAAA==",
+              "ViewState": "AgIAACQBAAAAAAAAAAAAwDoBAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003361|",
-              "WhenOpened": "2025-07-14T20:23:51.543Z",
+              "WhenOpened": "2025-10-02T22:40:44.177Z",
               "EditorCaption": ""
             },
             {
@@ -42,7 +42,8 @@
               "ToolTip": "C:\\Users\\edgar.sandoval\\Documents\\GitHub\\ReporteAjustes\\ReporteAjustesFinanzasMari\\frmEmailReportesDeajustesPorCorreo.vb [Design]",
               "RelativeToolTip": "ReporteAjustesFinanzasMari\\frmEmailReportesDeajustesPorCorreo.vb [Design]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003361|",
-              "WhenOpened": "2025-07-14T20:23:27.768Z"
+              "WhenOpened": "2025-10-02T22:40:34.423Z",
+              "EditorCaption": " [Design]"
             }
           ]
         }

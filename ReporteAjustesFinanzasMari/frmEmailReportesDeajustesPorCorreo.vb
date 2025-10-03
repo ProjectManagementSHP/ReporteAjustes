@@ -65,6 +65,7 @@ Public Class frmEmailReportesDeajustesPorCorreo
             'Dia = "31-Mar-2019"
             'CargaDatos(Dia)
             '  System.Threading.Thread.Sleep(60000)
+
             CargaDatosMensual(Dia, FechaInicio, Mes)
             'System.Threading.Thread.Sleep(60000)
             ' CargaDatosMensual("31-Oct-2024", "01-Oct-2024", "Octubre de 2024")
@@ -87,9 +88,14 @@ Public Class frmEmailReportesDeajustesPorCorreo
             'Try 'tblItemsFinantialInventoryControlTempforProductionProcess" & sTempTableName 
             Dim cmd As SqlCommand
                 Dim dr As SqlDataReader
-            Dim Query As String = "SELECT tblItemsTags.Tag, tblItemsTags.PN,(SELECT DESCRIPTION FROM TBLITEMSQB WHERE TBLITEMSQB.PN = TBLITEMSTAGS.PN AND tblItemsQB.SUBPN = TBLITEMSTAGS.SUBPN) AS Description, tblItemsTags.Balance, tblItemsAdjustmentTAGs.AdjusmentType, (tblItemsAdjustmentTAGs.QtyNew-tblItemsAdjustmentTAGs.QtyActual) AS Diff, tblItemsAdjustmentTAGs.QtyActual, tblItemsAdjustmentTAGs.QtyNew, tblItemsAdjustmentTAGs.Amount, tblItemsAdjustmentTAGs.CreatedDate, tblItemsAdjustmentTAGs.CreatedBy, tblItemsAdjustmentTAGs.Reason, tblItemsAdjustmentTAGs.Notes, tblItemsAdjustmentTAGs.ApprovedBy, tblItemsAdjustmentTAGs.ScrapCategory,tblItemsAdjustmentTAGs.AjusteUsuario FROM tblItemsTags INNER JOIN tblItemsAdjustmentTAGs ON tblItemsTags.TAG = tblItemsAdjustmentTAGs.TAG WHERE CAST(tblItemsAdjustmentTAGs.Createddate AS DATE) BETWEEN @FechaInicio AND @FechaFin ORDER BY tblItemsAdjustmentTAGs.CreatedDate ASC"
+            Dim Query As String = "SELECT tblItemsTags.Tag, tblItemsTags.PN,(SELECT DESCRIPTION FROM TBLITEMSQB WHERE TBLITEMSQB.PN = TBLITEMSTAGS.PN AND tblItemsQB.SUBPN = TBLITEMSTAGS.SUBPN) AS Description, tblItemsTags.Balance, tblItemsAdjustmentTAGs.AdjusmentType, 
+									(tblItemsAdjustmentTAGs.QtyNew-tblItemsAdjustmentTAGs.QtyActual) AS Diff, 
+		                           CASE WHEN tblItemsTags.PN LIKE 'W%' OR tblItemsTags.PN LIKE 'C%' THEN
+                                   (tblItemsAdjustmentTAGs.QtyNew-tblItemsAdjustmentTAGs.QtyActual) * 0.3048
+		                           ELSE 0
+		                           END AS 'Diff (mts)',tblItemsAdjustmentTAGs.QtyActual, tblItemsAdjustmentTAGs.QtyNew, tblItemsAdjustmentTAGs.Amount, tblItemsAdjustmentTAGs.CreatedDate, tblItemsAdjustmentTAGs.CreatedBy, tblItemsAdjustmentTAGs.Reason, tblItemsAdjustmentTAGs.Notes, tblItemsAdjustmentTAGs.ApprovedBy, tblItemsAdjustmentTAGs.ScrapCategory,tblItemsAdjustmentTAGs.AjusteUsuario FROM tblItemsTags INNER JOIN tblItemsAdjustmentTAGs ON tblItemsTags.TAG = tblItemsAdjustmentTAGs.TAG WHERE CAST(tblItemsAdjustmentTAGs.Createddate AS DATE) BETWEEN @FechaInicio AND @FechaFin ORDER BY tblItemsAdjustmentTAGs.CreatedDate ASC"
             cmd = New SqlCommand(Query, cnn)
-                cmd.CommandType = CommandType.Text
+            cmd.CommandType = CommandType.Text
                 cmd.Parameters.Add("@FechaInicio", SqlDbType.NVarChar).Value = FechaInicio
                 cmd.Parameters.Add("@FechaFin", SqlDbType.NVarChar).Value = Dia
                 cnn.Open()
@@ -320,7 +326,11 @@ Public Class frmEmailReportesDeajustesPorCorreo
                 Dim Query As String = ""
 
                 If tipoReporte.Equals("Reporte", StringComparison.OrdinalIgnoreCase) Then
-                    Query = "SELECT tblItemsTags.Tag, tblItemsTags.PN, (SELECT DESCRIPTION FROM TBLITEMSQB WHERE TBLITEMSQB.PN = TBLITEMSTAGS.PN AND tblItemsQB.SUBPN = TBLITEMSTAGS.SUBPN) AS Description, tblItemsTags.Balance, tblItemsAdjustmentTAGs.AdjusmentType, (tblItemsAdjustmentTAGs.QtyNew-tblItemsAdjustmentTAGs.QtyActual) AS Diff, tblItemsAdjustmentTAGs.QtyActual, tblItemsAdjustmentTAGs.QtyNew, tblItemsAdjustmentTAGs.Amount, tblItemsAdjustmentTAGs.CreatedDate, tblItemsAdjustmentTAGs.CreatedBy, tblItemsAdjustmentTAGs.Reason, tblItemsAdjustmentTAGs.Notes, tblItemsAdjustmentTAGs.ApprovedBy, tblItemsAdjustmentTAGs.ScrapCategory,tblItemsAdjustmentTAGs.AjusteUsuario
+                    Query = "SELECT tblItemsTags.Tag, tblItemsTags.PN, (SELECT DESCRIPTION FROM TBLITEMSQB WHERE TBLITEMSQB.PN = TBLITEMSTAGS.PN AND tblItemsQB.SUBPN = TBLITEMSTAGS.SUBPN) AS Description, tblItemsTags.Balance, tblItemsAdjustmentTAGs.AdjusmentType, (tblItemsAdjustmentTAGs.QtyNew-tblItemsAdjustmentTAGs.QtyActual) AS Diff, 
+		                    CASE WHEN tblItemsTags.PN LIKE 'W%' OR tblItemsTags.PN LIKE 'C%' THEN
+		                    (tblItemsAdjustmentTAGs.QtyNew-tblItemsAdjustmentTAGs.QtyActual) * 0.3048
+		                    ELSE 0
+		                    END AS 'Diff (mts)',tblItemsAdjustmentTAGs.QtyActual, tblItemsAdjustmentTAGs.QtyNew, tblItemsAdjustmentTAGs.Amount, tblItemsAdjustmentTAGs.CreatedDate, tblItemsAdjustmentTAGs.CreatedBy, tblItemsAdjustmentTAGs.Reason, tblItemsAdjustmentTAGs.Notes, tblItemsAdjustmentTAGs.ApprovedBy, tblItemsAdjustmentTAGs.ScrapCategory,tblItemsAdjustmentTAGs.AjusteUsuario
                             FROM tblItemsTags INNER JOIN tblItemsAdjustmentTAGs ON tblItemsTags.TAG = tblItemsAdjustmentTAGs.TAG WHERE CAST(tblItemsAdjustmentTAGs.Createddate AS DATE)
                             = @Dia AND AMOUNT >= 75 ORDER BY tblItemsAdjustmentTAGs.CreatedDate ASC"
                 ElseIf tipoReporte.Equals("Reporte detallado", StringComparison.OrdinalIgnoreCase) Then
@@ -554,16 +564,17 @@ Public Class frmEmailReportesDeajustesPorCorreo
         Dim Ruta As String = Path.GetTempPath() & ArchivoNombre
         'Tag,PN,Balance,AdjusmentType,Diff,QtyActual,QtyNew,Amount,CreatedDate,CreatedBy,Reason,Notes, ApprovedBy
         'Try
-        Dim AUX As String = "", MyTag As String = "", ProductType As String = "", UnitPrice As Decimal = 0, Piezas As Decimal = 0, Amount As Decimal = 0, TAG As String = ""
+        Dim AUX As String = "", MyTag As String = "", ProductType As String = "", UnitPrice As Decimal = 0, Piezas As Decimal = 0, Amount As Decimal = 0, TAG As String = "", Mts As Decimal = 0
         Dim fs As FileStream = File.Create(Ruta)
         Dim CadenaBB As String = vbNewLine + vbNewLine + vbNewLine, PN As String = "", BB As String
-        Dim Cadena As String = "Tag,PN,Description,Balance,AdjusmentType,Diff,QtyActual,QtyNew,Unit Price,Amount,CreatedDate,CreatedBy,Reason,Notes,ApprovedBy,BinBalance,ProductType,ScrapCategory,Usuario" + vbNewLine  '"Num,Issue," + vbNewLine
+        Dim Cadena As String = "Tag,PN,Description,Balance,AdjusmentType,Diff, Diff (mts),QtyActual,QtyNew,Unit Price,Amount,CreatedDate,CreatedBy,Reason,Notes,ApprovedBy,BinBalance,ProductType,ScrapCategory,Usuario" + vbNewLine  '"Num,Issue," + vbNewLine
         Dim infoTitulos As Byte() = New UTF8Encoding(True).GetBytes(Cadena)
         fs.Write(infoTitulos, 0, infoTitulos.Length)
         For NM As Integer = 0 To tblAjustes.Rows.Count - 1
             UnitPrice = 0
             Piezas = 0
             Amount = 0
+            mts = 0
             TAG = ""
             MyTag = LTrim(RTrim(tblAjustes.Rows(NM).Item("TAG").ToString))
             PN = LTrim(RTrim(tblAjustes.Rows(NM).Item("PN").ToString))
@@ -613,6 +624,13 @@ Public Class frmEmailReportesDeajustesPorCorreo
                 AUX = AUX.Replace(vbCrLf, " ")
                 AUX = AUX.Replace(",", " ")
                 Piezas = CDec(Val(AUX))
+                Cadena += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("Diff (mts)").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Mts = CDec(Val(AUX))
                 Cadena += AUX + ","
                 AUX = LTrim(RTrim(tblAjustes.Rows(NM).Item("QtyActual").ToString))
                 AUX = AUX.Replace(vbNewLine, " ")
@@ -734,6 +752,13 @@ Public Class frmEmailReportesDeajustesPorCorreo
                 AUX = AUX.Replace(vbCrLf, " ")
                 AUX = AUX.Replace(",", " ")
                 Piezas = CDec(Val(AUX))
+                CadenaBB += AUX + ","
+                AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("Diff (mts)").ToString))
+                AUX = AUX.Replace(vbNewLine, " ")
+                AUX = AUX.Replace(vbCr, " ")
+                AUX = AUX.Replace(vbCrLf, " ")
+                AUX = AUX.Replace(",", " ")
+                Mts = CDec(Val(AUX))
                 CadenaBB += AUX + ","
                 AUX = LTrim(RTrim(tblAjustes.Rows(KK).Item("QtyActual").ToString))
                 AUX = AUX.Replace(vbNewLine, " ")
